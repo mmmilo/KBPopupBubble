@@ -43,6 +43,7 @@ static const BOOL kKBViewControllerDebug = FALSE;
     NSArray * _colors;
     NSArray * _colorsBorder;
     NSInteger _colorIndex;
+    UIView *pointView;
 }
 
 @property (nonatomic, strong) PanelViewController * panel;
@@ -114,12 +115,22 @@ static const BOOL kKBViewControllerDebug = FALSE;
         [self.bubble hide:_useAnimations];
         self.bubble = nil;
     }
-    
+  
+    // create a temporary view
+    if (!pointView) {
+        pointView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 50, 50)];
+        pointView.backgroundColor = [UIColor redColor];
+        pointView.alpha = 0.40f;
+        [self.view addSubview:pointView];
+    }
+    pointView.center = center;
+  
     // Display the new view
     self.bubble = [[KBPopupBubbleView alloc] initWithCenter:center];
     [self configure:self.bubble];
-    [self.bubble showInView:self.view animated:_useAnimations];
-
+  
+    [self.bubble showInView:self.view pointingAtView:pointView animated:_useAnimations];
+  
     // Recycle panel
     [self.panel.view removeFromSuperview];
     [self.view addSubview:self.panel.view];

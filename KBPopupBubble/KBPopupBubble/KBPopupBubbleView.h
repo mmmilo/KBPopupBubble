@@ -125,6 +125,7 @@ enum {
 
 // View Lifecycle
 - (void)showInView:(UIView*)target animated:(BOOL)animated;
+- (void)showInView:(UIView*)target pointingAtView:(UIView *)view animated:(BOOL)animated;
 
 - (void)hide:(BOOL)animated;
 

@@ -345,6 +345,49 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
     }
 }
 
+- (void)showInView:(UIView*)parentView pointingAtView:(UIView *)targetView animated:(BOOL)animated {
+  
+  CGRect targetRelativeRect = [targetView.superview convertRect:targetView.frame toView:parentView];
+  CGPoint targetCenter = CGPointMake(CGRectGetMinX(targetRelativeRect) + CGRectGetWidth(targetRelativeRect)/2, CGRectGetMinY(targetRelativeRect) + CGRectGetHeight(targetRelativeRect)/2);
+  CGPoint center = targetCenter;
+  
+  // y offset
+  CGFloat y_main = CGRectGetHeight(self.frame)/2 + CGRectGetHeight(targetRelativeRect)/2;
+  CGFloat x_main = CGRectGetWidth(self.frame)/2 + CGRectGetWidth(targetRelativeRect)/2;
+  switch ( _side) {
+    case kKBPopupPointerSideTop:
+      center.y += y_main;
+      break;
+    case kKBPopupPointerSideBottom:
+      center.y -= y_main;
+      break;
+    case kKBPopupPointerSideLeft:
+      center.x += x_main;
+      break;
+    case kKBPopupPointerSideRight:
+      center.x -= x_main;
+      break;
+  }
+  
+  // arrow offset
+  CGPoint arrowTargetPoint = self.drawable.arrow.center;
+  switch ( _side) {
+    case kKBPopupPointerSideTop:
+    case kKBPopupPointerSideBottom:
+      center.x += (CGRectGetWidth(self.drawable.frame)/2) - arrowTargetPoint.x;
+      break;
+    case kKBPopupPointerSideLeft:
+    case kKBPopupPointerSideRight:
+      center.y += (CGRectGetHeight(self.drawable.frame)/2) - arrowTargetPoint.y;
+      break;
+  }
+  
+  // #todo if the position causes the bubble offscreen, we should 'suggest' a position/side.
+  
+  self.center = center;
+  [self showInView:parentView animated:YES];
+}
+
 - (void)hide:(BOOL)animated {
     if ( animated ) {
         [self popOut];
@@ -366,18 +409,18 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
         CGFloat targetX = 0.0;
         CGFloat targetY = 0.0;
         switch ( self.side ) {
-            case kKBPopupPointerSideTop:
-            case kKBPopupPointerSideBottom:
-                targetX = kKBPopupArrowMargin + kKBPopupArrowWidth/2.0f + self.drawable.workingWidth * position;
-                targetY = rect1.origin.y + rect1.size.height/2.0f;
-                break;
-            case kKBPopupPointerSideLeft:
-            case kKBPopupPointerSideRight:
-                targetX = rect1.origin.x + rect1.size.width/2.0f;
-                targetY = kKBPopupArrowMargin + kKBPopupArrowWidth/2.0f + self.drawable.workingHeight * position;
-                break;
+          case kKBPopupPointerSideTop:
+          case kKBPopupPointerSideBottom:
+            targetX = kKBPopupArrowMargin + kKBPopupArrowWidth/2.0f + self.drawable.workingWidth * self.targetPosition;
+            targetY = rect1.origin.y + rect1.size.height/2.0f;
+            break;
+          case kKBPopupPointerSideLeft:
+          case kKBPopupPointerSideRight:
+            targetX = rect1.origin.x + rect1.size.width/2.0f;
+            targetY = kKBPopupArrowMargin + kKBPopupArrowWidth/2.0f + self.drawable.workingHeight * self.targetPosition;
+            break;
         }
-        
+      
         // Configure first animation
         CABasicAnimation *animation1 = [CABasicAnimation animationWithKeyPath:@"position"];
         animation1.duration = kKBDefaultSlideDuration;
