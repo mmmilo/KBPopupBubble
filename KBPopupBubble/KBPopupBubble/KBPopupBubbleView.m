@@ -484,7 +484,9 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
     CGRect originalLabelFrame = self.label.frame;
     CGRect restrain = [self labelRectFromRect:originalFrame];
     CGSize size = [self.label sizeThatFits:CGSizeMake(restrain.size.width, 999999)];
-
+    size.width += _paddingSide * 2;
+    size.height += _paddingTop * 2;
+    
     // shrink the outside frames by the same percentage
     CGFloat w = originalLabelFrame.size.width/(size.width+1.0f);
     CGFloat h = originalLabelFrame.size.height/(size.height+1.0f);
