@@ -163,7 +163,10 @@
     self.cover.backgroundColor = self.drawableColor;
     self.cover.delegate = self;
     [self addSubview:self.cover];
-    
+  
+    self.cover.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight| UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
+    self.arrow.autoresizingMask = self.cover.autoresizingMask;
+  
     // Configure the corners
     [self updateCover];
 }

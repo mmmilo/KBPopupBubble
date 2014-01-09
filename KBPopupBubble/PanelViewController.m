@@ -183,6 +183,9 @@
             case 3:
                 [self.delegate setSide:kKBPopupPointerSideRight];
                 break;
+            case 4:
+                [self.delegate setSide:kKBPopupPointerSideNone];
+                break;
         }
     }
 

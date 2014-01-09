@@ -40,13 +40,17 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
 
 #pragma mark -
 #pragma mark Internal Interface
-@interface KBPopupBubbleView() 
+@interface KBPopupBubbleView() {
+  CGRect originalFrame;
+}
 
 @property (nonatomic, strong) KBPopupDrawableView * drawable;
 @property (nonatomic, strong) UIView * shadow;
 @property (nonatomic, assign) CGFloat targetPosition;
 @property (nonatomic, assign) CGPoint touch;
 @property (nonatomic, strong) NSMutableDictionary * completionBlocks;
+
+@property (nonatomic, copy) NSMutableDictionary *bubbleAnimationBlocks;
 
 @end
 
@@ -159,12 +163,9 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
     [[self drawable] updateCover];
 }
 
-- (void)setSide:(NSUInteger)side {
+- (void)setSide:(kKBPopupPointerSide)side {
     // Update model
-    if( side != kKBPopupPointerSideTop &&
-        side != kKBPopupPointerSideBottom &&
-        side != kKBPopupPointerSideLeft &&
-        side != kKBPopupPointerSideRight ) return;
+    if( side < kKBPopupPointerSideNone || side > kKBPopupPointerSideRight ) { return; }
     _side = side;
     [[self drawable] setSide:side];
     
@@ -214,13 +215,13 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
 - (void)configure {
     [self setBackgroundColor:[UIColor clearColor]];
     _drawableColor   = kKBPopupDefaultDrawableColor;
-    
+  
     _margin      = kKBDefaultMargin;
     _paddingSide = kKBDefaultPaddingSide;
     _paddingTop  = kKBDefaultPaddingTop;
     _position    = kKBPopupDefaultPosition;
-    _side        = kKBPopupDefaultSide;
-    
+    _shouldAutoFitText = YES;
+  
     _cornerRadius       = kKBPopupDefaultCornerRadius;
     _animationDuration  = kKBPopupDefaultAnimationDuration;
     _shadowOpacity      = kKBPopupDefaultShadowOpacity;
@@ -232,11 +233,12 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
     
     _completionBlocks     = [[NSMutableDictionary alloc] init];
     _completionBlockDelay = kKBPopupDefaultCompletionDelay;
-    
-    CGRect rect1 = CGRectMake(_margin,
-                              _margin,
-                              [self frame].size.width - 2 * _margin,
-                              [self frame].size.height - 2 * _margin);
+  
+    _bubbleAnimationBlocks = [[NSMutableDictionary alloc] init];
+    [_bubbleAnimationBlocks setObject:[KBPopupBubbleView slideInAnimationBlockWithDuration:self.animationDuration] forKey:kKBPopupAnimationPopIn];
+    [_bubbleAnimationBlocks setObject:[KBPopupBubbleView slideOutAnimationBlockWithDuration:self.animationDuration] forKey:kKBPopupAnimationPopOut];
+  
+    CGRect rect1 = [self bubbleRectFromRect:self.frame];
     _drawable = [[KBPopupDrawableView alloc] initWithFrame:rect1];
     _drawable.position = _position;
     _drawable.drawableColor = _drawableColor;
@@ -244,25 +246,28 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
     _shadow = [[UIView alloc] initWithFrame:rect1];
     _shadow.backgroundColor = [UIColor clearColor];
     
-    CGRect rect2 = _drawable.bounds;
-    CGRect rect3 = CGRectMake(_paddingSide,
-                              _paddingTop,
-                              rect2.size.width - 2 * _paddingSide,
-                              rect2.size.height - 2 * _paddingTop);
+    originalFrame = _drawable.bounds;
+    CGRect rect3 = [self labelRectFromRect:originalFrame];
     _label = [[UILabel alloc] initWithFrame:rect3];
     _label.backgroundColor = [UIColor clearColor];
     _label.numberOfLines = 0;
     [_drawable addSubview:_label];
-    
+
     [self setUseDropShadow:kKBPopupDefaultUseDropShadow];
     [self setUseRoundedCorners:kKBPopupDefaultUseRoundedCorners];
     [self setUseBorders:kKBPopupDefaultUseBorders];
     [self setDraggable:kKBPopupDefaultDraggable];
-    
+    self.side        = kKBPopupDefaultSide;
+
+  
     [self setUserInteractionEnabled:YES];
     
     [self addSubview:_shadow];
     [self addSubview:_drawable];
+  
+    _drawable.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
+    _label.autoresizingMask = _drawable.autoresizingMask;
+    _shadow.autoresizingMask = _drawable.autoresizingMask;
 }
 
 - (void)configureShadow {
@@ -294,6 +299,8 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
                 targetX = rect1.origin.x;
                 targetY = kKBPopupArrowMargin + _drawable.workingHeight * position;
                 break;
+            case kKBPopupPointerSideNone:
+                break;
         }
         
         // Configure the Bezier Path
@@ -319,6 +326,8 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
                 [path addLineToPoint:CGPointMake(targetX + kKBPopupArrowHeight, targetY + base)];
                 [path addLineToPoint:CGPointMake(targetX, targetY + 2 * base)];
                 break;
+            case kKBPopupPointerSideNone:
+                break;
         }
         [path closePath];
         
@@ -335,13 +344,30 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
                       kKBDefaultHeight);
 }
 
+- (CGRect)bubbleRectFromRect:(CGRect)rect {
+  CGRect rect1 = CGRectMake(_margin,
+                            _margin,
+                            rect.size.width - 2 * _margin,
+                            rect.size.height - 2 * _margin);
+  return rect1;
+}
+
+- (CGRect)labelRectFromRect:(CGRect)rect2 {
+  CGRect rect3 = CGRectMake(_paddingSide,
+                            _paddingTop,
+                            rect2.size.width - 2 * _paddingSide,
+                            rect2.size.height - 2 * _paddingTop);
+  return rect3;
+}
+
 #pragma mark -
 #pragma mark View Lifecycle
 // View Lifecycle
 - (void)showInView:(UIView*)target animated:(BOOL)animated {
     [target addSubview:self];
     if ( animated ) {
-        [self popIn];
+      KBPopupAnimationBlock block = [self.bubbleAnimationBlocks objectForKey:kKBPopupAnimationPopIn];
+      if (block) { block(self, self.animationDuration); }
     }
 }
 
@@ -351,46 +377,51 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
   CGPoint targetCenter = CGPointMake(CGRectGetMinX(targetRelativeRect) + CGRectGetWidth(targetRelativeRect)/2, CGRectGetMinY(targetRelativeRect) + CGRectGetHeight(targetRelativeRect)/2);
   CGPoint center = targetCenter;
   
-  // y offset
-  CGFloat y_main = CGRectGetHeight(self.frame)/2 + CGRectGetHeight(targetRelativeRect)/2;
-  CGFloat x_main = CGRectGetWidth(self.frame)/2 + CGRectGetWidth(targetRelativeRect)/2;
-  switch ( _side) {
-    case kKBPopupPointerSideTop:
-      center.y += y_main;
-      break;
-    case kKBPopupPointerSideBottom:
-      center.y -= y_main;
-      break;
-    case kKBPopupPointerSideLeft:
-      center.x += x_main;
-      break;
-    case kKBPopupPointerSideRight:
-      center.x -= x_main;
-      break;
+  if (self.side != kKBPopupPointerSideNone) {
+    // y offset
+    CGFloat y_main = CGRectGetHeight(self.frame)/2 + CGRectGetHeight(targetRelativeRect)/2;
+    CGFloat x_main = CGRectGetWidth(self.frame)/2 + CGRectGetWidth(targetRelativeRect)/2;
+    switch ( _side) {
+      case kKBPopupPointerSideTop:
+        center.y += y_main;
+        break;
+      case kKBPopupPointerSideBottom:
+        center.y -= y_main;
+        break;
+      case kKBPopupPointerSideLeft:
+        center.x += x_main;
+        break;
+      case kKBPopupPointerSideRight:
+        center.x -= x_main;
+        break;
+      default:
+        break;
+    }
+    
+    // arrow offset
+    CGPoint arrowTargetPoint = self.drawable.arrow.center;
+    switch ( _side) {
+      case kKBPopupPointerSideTop:
+      case kKBPopupPointerSideBottom:
+        center.x += (CGRectGetWidth(self.drawable.frame)/2) - arrowTargetPoint.x;
+        break;
+      case kKBPopupPointerSideLeft:
+      case kKBPopupPointerSideRight:
+        center.y += (CGRectGetHeight(self.drawable.frame)/2) - arrowTargetPoint.y;
+        break;
+      default:
+        break;
+    }
   }
-  
-  // arrow offset
-  CGPoint arrowTargetPoint = self.drawable.arrow.center;
-  switch ( _side) {
-    case kKBPopupPointerSideTop:
-    case kKBPopupPointerSideBottom:
-      center.x += (CGRectGetWidth(self.drawable.frame)/2) - arrowTargetPoint.x;
-      break;
-    case kKBPopupPointerSideLeft:
-    case kKBPopupPointerSideRight:
-      center.y += (CGRectGetHeight(self.drawable.frame)/2) - arrowTargetPoint.y;
-      break;
-  }
-  
-  // #todo if the position causes the bubble offscreen, we should 'suggest' a position/side.
-  
   self.center = center;
+  
   [self showInView:parentView animated:YES];
 }
 
 - (void)hide:(BOOL)animated {
     if ( animated ) {
-        [self popOut];
+      KBPopupAnimationBlock block = [self.bubbleAnimationBlocks objectForKey:kKBPopupAnimationPopOut];
+      if (block) { block(self, self.animationDuration); }
     } else {
         [self removeFromSuperview];
     }
@@ -400,7 +431,7 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
 - (void)setPosition:(CGFloat)position animated:(BOOL)animated {
     if ( position < 0.0f || position > 1.0f ) return;
 
-    if ( !animated ) {
+    if ( !animated || self.side != kKBPopupPointerSideNone ) {
         self.position = position;
     } else {
         // Get stats for the arrow rect
@@ -418,6 +449,8 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
           case kKBPopupPointerSideRight:
             targetX = rect1.origin.x + rect1.size.width/2.0f;
             targetY = kKBPopupArrowMargin + kKBPopupArrowWidth/2.0f + self.drawable.workingHeight * self.targetPosition;
+            break;
+          case kKBPopupPointerSideNone:
             break;
         }
       
@@ -442,6 +475,27 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
         [self.drawable.arrow.layer addAnimation:animation1 forKey:(NSString*)kKBAnimationKeyArrowPosition];
         [self.shadow.layer addAnimation:animation2 forKey:(NSString*)kKBAnimationKeyShadowPosition];
     }
+}
+
+- (void)setText:(NSString *)text {
+  self.label.text = text;
+  
+  if (self.shouldAutoFitText) {
+    CGRect originalLabelFrame = self.label.frame;
+    CGRect restrain = [self labelRectFromRect:originalFrame];
+    CGSize size = [self.label sizeThatFits:CGSizeMake(restrain.size.width, 999999)];
+
+    // shrink the outside frames by the same percentage
+    CGFloat w = originalLabelFrame.size.width/(size.width+1.0f);
+    CGFloat h = originalLabelFrame.size.height/(size.height+1.0f);
+    CGPoint center1 = self.center;
+    CGRect frame1 = self.frame;
+    frame1.size.width /= w;
+    frame1.size.height /= h;
+    self.frame = frame1;
+    self.center = center1;
+    [self configureShadow];
+  }
 }
 
 #pragma mark -

@@ -169,8 +169,11 @@ static const BOOL kKBViewControllerDebug = FALSE;
         case 3:
             [bubble setSide:kKBPopupPointerSideRight];
             break;
+        case 4:
+          [bubble setSide:kKBPopupPointerSideNone];
+          break;
     }
-    
+  
     // Position
     switch ( self.panel.position1.selectedSegmentIndex ) {
         case 0:

@@ -28,8 +28,7 @@
 
 @interface KBPopupBubbleView (Animations)
 
-- (void)popIn;
-
-- (void)popOut;
++ (KBPopupAnimationBlock)slideInAnimationBlockWithDuration:(CGFloat)_duration;
++ (KBPopupAnimationBlock)slideOutAnimationBlockWithDuration:(CGFloat)_duration;
 
 @end

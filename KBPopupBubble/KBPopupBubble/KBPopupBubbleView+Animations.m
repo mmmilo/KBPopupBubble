@@ -32,30 +32,74 @@
 
 #pragma mark -
 #pragma mark Public Interface
+
 //
 // Add the view to the target view, using animations
 //
-- (void)popIn
++ (KBPopupAnimationBlock)slideInAnimationBlockWithDuration:(CGFloat)_duration
 {
-    // Clear existing animations
-    [self.layer removeAllAnimations];
+  KBPopupAnimationBlock block =
+  ^(KBPopupBubbleView *bubble, CGFloat duration){
+    __block CGRect originalFrame = bubble.frame;
+    __block CGRect frame = bubble.frame;
     
-    // Add new animation
-    CAAnimation *animation = [self generatePopInAnimation];
-    [self.layer addAnimation:animation forKey:(NSString*)kKBPopupAnimationPopIn];
+    float amount = 10.0f;
+    switch (bubble.side) {
+      case kKBPopupPointerSideBottom:
+        frame.origin.y -= amount;
+        break;
+      case kKBPopupPointerSideLeft:
+        frame.origin.x += amount;
+        break;
+      case kKBPopupPointerSideRight:
+        frame.origin.x -= amount;
+        break;
+      default:
+      case kKBPopupPointerSideTop:
+        frame.origin.y += amount;
+        break;
+    }
+    
+    bubble.frame = frame;
+    bubble.alpha = 0.0f;
+    
+    [UIView animateWithDuration:duration animations:^{
+      bubble.frame = originalFrame;
+      bubble.alpha = 1.0f;
+    }];
+  };
+  return block;
 }
 
-//
-// Remove the view from the target view, using animations
-//
-- (void)popOut
++ (KBPopupAnimationBlock)slideOutAnimationBlockWithDuration:(CGFloat)_duration
 {
-    // Clear existing animations
-    [self.layer removeAllAnimations];
+  KBPopupAnimationBlock block =
+  ^(KBPopupBubbleView *bubble, CGFloat duration){
+    __block CGRect frame = bubble.frame;
     
-    // Add new animation
-    CAAnimation *animation = [self generatePopOutAnimation];
-    [self.layer addAnimation:animation forKey:(NSString*)kKBPopupAnimationPopOut];
+    float amount = 10.0f;
+    switch (bubble.side) {
+      case kKBPopupPointerSideBottom:
+        frame.origin.y -= amount;
+        break;
+      case kKBPopupPointerSideLeft:
+        frame.origin.x += amount;
+        break;
+      case kKBPopupPointerSideRight:
+        frame.origin.x -= amount;
+        break;
+      default:
+      case kKBPopupPointerSideTop:
+        frame.origin.y += amount;
+        break;
+    }
+    
+    [UIView animateWithDuration:duration animations:^{
+      bubble.frame = frame;
+      bubble.alpha = 0.0f;
+    }];
+  };
+  return block;
 }
 
 #pragma mark -

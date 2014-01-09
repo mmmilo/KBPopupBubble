@@ -43,12 +43,13 @@ typedef void (^KBPopupBubbleCompletionBlock)(void);
 #define kKBAnimationKeyShadowPosition   @"shadowPosition"
 
 // Which side of the bubble to render the pointer
-enum {
+typedef enum {
+    kKBPopupPointerSideNone,
     kKBPopupPointerSideTop,
     kKBPopupPointerSideBottom,
     kKBPopupPointerSideLeft,
     kKBPopupPointerSideRight,
-};
+} kKBPopupPointerSide;
 
 //
 // Defaults to help during construction
@@ -71,6 +72,9 @@ enum {
 #define kKBPopupDefaultShadowOffset          CGSizeMake(5.0f, 5.0f)
 #define kKBPopupDefaultPosition              kKBPopupPointerPositionMiddle
 #define kKBPopupDefaultSide                  kKBPopupPointerSideTop
+
+@class KBPopupBubbleView;
+typedef void (^KBPopupAnimationBlock)(KBPopupBubbleView *bubbleView, CGFloat duration);
 
 #pragma mark -
 #pragma mark Delegate Protocol
@@ -95,6 +99,7 @@ enum {
 @property (nonatomic, assign) BOOL useDropShadow;
 @property (nonatomic, assign) BOOL useRoundedCorners;
 @property (nonatomic, assign) BOOL useBorders;
+@property (nonatomic, assign) BOOL shouldAutoFitText;
 
 @property (nonatomic, assign) BOOL draggable;
 
@@ -108,7 +113,7 @@ enum {
 @property (nonatomic, assign) CGFloat shadowOpacity;
 @property (nonatomic, assign) CGFloat shadowRadius;          
 @property (nonatomic, assign) CGFloat borderWidth;           
-@property (nonatomic, assign) NSUInteger side;
+@property (nonatomic, assign) kKBPopupPointerSide side;
 
 @property (nonatomic, strong) UILabel * label;
 
@@ -128,6 +133,9 @@ enum {
 - (void)showInView:(UIView*)target pointingAtView:(UIView *)view animated:(BOOL)animated;
 
 - (void)hide:(BOOL)animated;
+
+//
+- (void)setText:(NSString *)text;
 
 // Adjust Position
 - (void)setPosition:(CGFloat)position animated:(BOOL)animated;
