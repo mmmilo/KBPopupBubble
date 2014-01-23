@@ -179,23 +179,23 @@
     CGRect rect = CGRectZero;
     switch ( self.side ) {
         case kKBPopupPointerSideTop:
-            X = kKBPopupArrowMargin + self.workingWidth * position;
+            X = self.cornerRadius + self.workingWidth * position;
             Y = (-1) * kKBPopupArrowHeight;
             rect = CGRectMake(X, Y, kKBPopupArrowWidth, kKBPopupArrowHeight + kKBPopupArrowAdjustment);
             break;
         case kKBPopupPointerSideBottom:
-            X = kKBPopupArrowMargin + self.workingWidth * position;
+            X = self.cornerRadius + self.workingWidth * position;
             Y = self.frame.size.height - kKBPopupArrowAdjustment;
             rect = CGRectMake(X, Y, kKBPopupArrowWidth, kKBPopupArrowHeight + kKBPopupArrowAdjustment);
             break;
         case kKBPopupPointerSideLeft:
             X = (-1) * kKBPopupArrowHeight;
-            Y = kKBPopupArrowMargin + self.workingHeight * position;
+            Y = self.cornerRadius + self.workingHeight * position;
             rect = CGRectMake(X, Y, kKBPopupArrowHeight + kKBPopupArrowAdjustment, kKBPopupArrowWidth);
             break;
         case kKBPopupPointerSideRight:
             X = self.frame.size.width - kKBPopupArrowAdjustment;
-            Y = kKBPopupArrowMargin + self.workingHeight * position;
+            Y = self.cornerRadius + self.workingHeight * position;
             rect = CGRectMake(X, Y, kKBPopupArrowHeight + kKBPopupArrowAdjustment, kKBPopupArrowWidth);
             break;
     }
