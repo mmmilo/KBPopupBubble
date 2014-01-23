@@ -93,8 +93,8 @@ typedef void (^KBPopupAnimationBlock)(KBPopupBubbleView *bubbleView, CGFloat dur
 
 @property (nonatomic, assign)   CGFloat position;
 @property (nonatomic, readonly) CGFloat margin;
-@property (nonatomic, readonly) CGFloat paddingSide;
-@property (nonatomic, readonly) CGFloat paddingTop;
+@property (nonatomic) CGFloat paddingSide;
+@property (nonatomic) CGFloat paddingTop;
 
 @property (nonatomic, assign) BOOL useDropShadow;
 @property (nonatomic, assign) BOOL useRoundedCorners;
