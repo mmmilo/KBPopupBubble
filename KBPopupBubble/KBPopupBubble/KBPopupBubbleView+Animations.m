@@ -76,6 +76,7 @@
   KBPopupAnimationBlock block =
   ^(KBPopupBubbleView *bubble, CGFloat duration){
     __block CGRect frame = bubble.frame;
+    __block CGRect originalFrame = bubble.frame;
     
     float amount = 10.0f;
     switch (bubble.side) {
@@ -97,6 +98,11 @@
     [UIView animateWithDuration:duration animations:^{
       bubble.frame = frame;
       bubble.alpha = 0.0f;
+    } completion:^(BOOL finished) {
+      if (finished) {
+        // restore the frame in case we need to re-use the bubble.
+        bubble.frame = originalFrame;
+      }
     }];
   };
   return block;
