@@ -41,7 +41,7 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
 #pragma mark -
 #pragma mark Internal Interface
 @interface KBPopupBubbleView() {
-  CGRect originalFrame;
+  CGRect originalBounds;
 }
 
 @property (nonatomic, strong) KBPopupDrawableView * drawable;
@@ -173,6 +173,14 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
     [self configureShadow];
 }
 
+- (void)setBounds:(CGRect)bounds {
+  [super setBounds:bounds];
+  CGPoint originalCenter = self.center;
+  self.frame = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
+  self.center = originalCenter;
+  originalBounds = bounds;
+}
+
 #pragma mark -
 #pragma mark Constructors
 //
@@ -246,8 +254,8 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
     _shadow = [[UIView alloc] initWithFrame:rect1];
     _shadow.backgroundColor = [UIColor clearColor];
     
-    originalFrame = _drawable.bounds;
-    CGRect rect3 = [self labelRectFromRect:originalFrame];
+    originalBounds = _drawable.bounds;
+    CGRect rect3 = [self labelRectFromRect:originalBounds];
     _label = [[UILabel alloc] initWithFrame:rect3];
     _label.backgroundColor = [UIColor clearColor];
     _label.numberOfLines = 0;
@@ -482,7 +490,7 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
   
   if (self.shouldAutoFitText) {
     CGRect originalLabelFrame = self.label.frame;
-    CGRect restrain = [self labelRectFromRect:originalFrame];
+    CGRect restrain = [self labelRectFromRect:originalBounds];
     CGSize size = [self.label sizeThatFits:CGSizeMake(restrain.size.width, 999999)];
     size.width += _paddingSide * 2;
     size.height += _paddingTop * 2;
