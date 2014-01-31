@@ -102,6 +102,7 @@
       if (finished) {
         // restore the frame in case we need to re-use the bubble.
         bubble.frame = originalFrame;
+        [bubble removeFromSuperview];
       }
     }];
   };
