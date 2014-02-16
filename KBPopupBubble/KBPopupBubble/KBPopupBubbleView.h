@@ -160,4 +160,6 @@ typedef void (^KBPopupAnimationBlock)(KBPopupBubbleView *bubbleView, CGFloat dur
 
 - (void)removeCompletionBlock:(NSString*)animationKey;
 
+- (void)runAnimationCompletionBlockForKey:(NSString *)key;
+
 @end

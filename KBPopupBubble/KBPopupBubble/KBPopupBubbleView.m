@@ -504,6 +504,7 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
     frame1.size.height /= h;
     self.frame = frame1;
     self.center = center1;
+    [self.drawable updateArrow];
     [self configureShadow];
   }
 }
@@ -511,40 +512,46 @@ static const CGFloat kKBDefaultSlideDuration = 0.4f;
 #pragma mark -
 #pragma mark CAAnimation Delegate
 - (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag {
-    // COMPLETION BLOCK
-    void (^completionBlock)(void) = nil;
-    
+    NSString *key;
+  
     // ARROW MOVE
     if ( theAnimation == [self.drawable.arrow.layer animationForKey:(NSString*)kKBAnimationKeyArrowPosition] ) {
         [self setPosition:self.targetPosition];
         [self.drawable.arrow.layer removeAllAnimations];
-        completionBlock = [_completionBlocks objectForKey:(NSString*)kKBAnimationKeyArrowPosition];
+        key = kKBAnimationKeyArrowPosition;
     }
     
     // SHADOW MOVE
     if ( theAnimation == [self.shadow.layer animationForKey:(NSString*)kKBAnimationKeyShadowPosition] ) {
         [self.shadow.layer removeAllAnimations];
-        completionBlock = [_completionBlocks objectForKey:(NSString*)kKBAnimationKeyShadowPosition];
+        key = kKBAnimationKeyShadowPosition;
     }
     
     // POP IN
     if ( theAnimation == [self.layer animationForKey:(NSString*)kKBPopupAnimationPopIn] ) {
         [self.layer removeAllAnimations];
-        completionBlock = [_completionBlocks objectForKey:(NSString*)kKBPopupAnimationPopIn];
+        key = kKBPopupAnimationPopIn;
     }
     
     // POP OUT
     if ( theAnimation == [self.layer animationForKey:(NSString*)kKBPopupAnimationPopOut] ) {
         [self removeFromSuperview];
         [self.layer removeAllAnimations];
-        completionBlock = [_completionBlocks objectForKey:(NSString*)kKBPopupAnimationPopOut];
+        key = kKBPopupAnimationPopOut;
     }
-    
-    if ( completionBlock != nil ) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, self.completionBlockDelay * NSEC_PER_SEC) , dispatch_get_current_queue(), ^{
-            completionBlock();
-        });
+  
+    if (key) {
+      [self runAnimationCompletionBlockForKey:key];
     }
+}
+
+- (void)runAnimationCompletionBlockForKey:(NSString *)key {
+  void (^completionBlock)(void) =  [_completionBlocks objectForKey:(NSString*)kKBPopupAnimationPopOut];
+  if ( completionBlock != nil ) {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, self.completionBlockDelay * NSEC_PER_SEC) , dispatch_get_current_queue(), ^{
+      completionBlock();
+    });
+  }
 }
 
 #pragma mark -
